@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PPH Learners Playground (Python)</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <header>
+        <h1>🐍 PPH Learners Playground (Python)</h1>
+        <div class="controls">
+            <button id="runBtn">▶ Run</button>
+            <button id="downloadBtn">⬇ Download</button>
+            <button id="resetBtn">↺ Reset</button>
+            <button id="themeToggleBtn" title="Toggle theme">🌓</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="editor-section">
+            <div class="tab-bar">
+                <button class="tab-btn active">Python</button>
+            </div>
+            <div class="editor-wrapper">
+                <div id="lineNumbers-python">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10</div>
+                <div class="code-area">
+                    <div id="highlighting-python"></div>
+                    <textarea id="editor-python" spellcheck="false">print("👋 Welcome to PPH Learners Playground!")
+name = "Pythonista"
+print(f"Hello, {name}!")
+for i in range(3):
+    print(f"  count {i}")
+print("✨ Ready to code!")</textarea>
+                </div>
+            </div>
+        </section>
+
+        <section class="preview-section">
+            <div class="preview-header">
+                <span>⏎ Output</span>
+                <span class="output-status" id="statusText">idle</span>
+            </div>
+            <div id="outputBox">› ready · press Run or Ctrl+Enter</div>
+        </section>
+    </main>
+
+    <footer>
+        <span>Built by <a href="https://agunechemba.name.ng/">Agunechemba Ekene</a></span>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
