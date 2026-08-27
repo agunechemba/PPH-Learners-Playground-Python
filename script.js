@@ -267,6 +267,44 @@
         statusText.textContent = text;
     }
 
+    // ----- Setup Pyodide with input override -----
+    function setupPyodideInput() {
+        try {
+            // Override Python's input() function to use browser prompt
+            pyodide.runPython(`
+import js
+
+# Override the built-in input() function
+def input(prompt=""):
+    if prompt:
+        result = js.window.prompt(prompt)
+    else:
+        result = js.window.prompt("")
+    # Return empty string if user cancels (instead of None)
+    return result if result is not None else ""
+
+# Make it available globally
+import builtins
+builtins.input = input
+
+# Also add to __builtins__
+import __builtin__ as builtins
+builtins.input = input
+`);
+
+            // Try a different approach if the above fails
+            pyodide.runPython(`
+import sys
+sys.modules['builtins'].input = input
+`);
+
+            return true;
+        } catch (e) {
+            console.error('Failed to setup input override:', e);
+            return false;
+        }
+    }
+
     // ----- Run Python code -----
     async function runPython(code) {
         if (isRunning) return;
@@ -291,9 +329,13 @@
                 pyodide = await globalThis.loadPyodide({
                     indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/',
                 });
+                
+                // Setup the input override
+                setupPyodideInput();
+                
                 setStatus('ready');
                 clearOutput();
-                appendOutput('✓ Python ready', 'success');
+                appendOutput('✓ Python ready with interactive input support', 'success');
             } catch (err) {
                 setStatus('error');
                 setOutputError(`Failed to load Python: ${err.message || err}`);
@@ -305,6 +347,7 @@
         setStatus('running…');
         clearOutput();
 
+        // Set up stdout/stderr capture
         pyodide.runPython(`
 import sys
 from io import StringIO
@@ -320,11 +363,13 @@ sys.stderr = StringIO()
             error = e;
         }
 
+        // Get captured output
         const stdout = pyodide.runPython('sys.stdout.getvalue()');
         const stderr = pyodide.runPython('sys.stderr.getvalue()');
         if (stdout) output += stdout;
         if (stderr) output += stderr;
 
+        // Restore stdout/stderr
         pyodide.runPython(`
 sys.stdout = sys.__stdout__
 sys.stderr = sys.__stderr__
@@ -355,12 +400,29 @@ sys.stderr = sys.__stderr__
     }
 
     function resetExample() {
-        const example = `print("👋 Welcome to PPH Learners Playground!")
-name = "Pythonista"
+        const example = `# Welcome to the Interactive Python Playground!
+# This playground supports input() just like regular Python!
+
+print("👋 Welcome to the Interactive Python Playground!")
+print()
+
+# input() works just like normal Python!
+name = input("What's your name? ")
 print(f"Hello, {name}!")
-for i in range(3):
-    print(f"  count {i}")
-print("✨ Ready to code!")`;
+
+age = input("How old are you? ")
+if age:
+    try:
+        age_num = int(age)
+        print(f"You are {age_num} years old!")
+        print(f"Next year you'll be {age_num + 1}!")
+    except ValueError:
+        print("That's not a valid age!")
+else:
+    print("No age provided.")
+
+print()
+print("✨ Playground complete!")`;
         editor.value = example;
         syncEditor();
         clearOutput();
@@ -397,9 +459,13 @@ print("✨ Ready to code!")`;
                     pyodide = await globalThis.loadPyodide({
                         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/',
                     });
+                    
+                    // Setup the input override
+                    setupPyodideInput();
+                    
                     setStatus('ready');
                     clearOutput();
-                    appendOutput('✓ Python interpreter loaded', 'success');
+                    appendOutput('✓ Python interpreter loaded with input support', 'success');
                 } catch (_) { /* ignore */ }
             };
             document.head.appendChild(script);
